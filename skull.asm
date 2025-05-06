@@ -7,15 +7,15 @@
 ;***************************************************************************************
 #mute                                       ; LABELS AND CONSTANTS
 #org 0x430c     viewport:                   ; start index of 400x240 pixel viewport (0x4000 + 12*64 + 11)
-#org 0x3c00		img_len:
+#org 0x3c00	img_len:
 #org 0xf015     _WaitInput:
 #org 0xf006 	_MemMove:	
-#org 0xf03f 	_Char:						;Outputs a char at the cursor pos (non-advancing)
+#org 0xf03f 	_Char:			    ;Outputs a char at the cursor pos (non-advancing)
 #org 0xf012     _ReadInput:
 #org 0xf045     _Print:                     ; Prints a zero-terminated immediate string
 #org 0x00c0     _XPos:                      ; current VGA cursor col position (x: 0..WIDTH-1)
 #org 0x00c1     _YPos:                      ; current VGA cursor row position (y: 0..HEIGHT-1)
-#org 0xfee1 	vsync:   					; 4HC574 input Kempston, bit6 = vsync
+#org 0xfee1 	vsync:   		    ; 4HC574 input Kempston, bit6 = vsync
 #emit
 
 #org 0x8000 
@@ -30,8 +30,8 @@
 	LDI >img_start		PHS
 	LDI <img_len 		PHS
 	LDI >img_len		PHS
-	JPS _MemMove				; 0xf006 _MemMove:	Moves N bytes from S.. to D.. taking overlap into account.
-								; push: D_lsb, D_msb, S_lsb, S_msb, N_lsb, N_msb
+	JPS _MemMove			; 0xf006 _MemMove:	Moves N bytes from S.. to D.. taking overlap into account.
+					; push: D_lsb, D_msb, S_lsb, S_msb, N_lsb, N_msb
 	PLS PLS PLS PLS PLS PLS		;stack clean after _MemMove
 
 	JPS VS_detect				;determine if VS signal can be read (i.e. expansion card present) 
@@ -44,7 +44,7 @@
 ;* delay with VSync or fixed depending on Exp Board presence
 ;******************************************************
 Main_loop:
-		JPS Scroll				; scroll a column one pixel up
+		JPS Scroll			; scroll a column one pixel up
 		LDB VS_counter 			; if VS_counter is zero then exp board is not present
 		CPI 0x00
 		BEQ Exp_not_present		;   depending if exp board is present, 
@@ -98,7 +98,7 @@ waitVsync:
     LDB vsync
     ANI 0x40
     CPI 0x00
-    BEQ waitVsync   ; wait until high
+    BEQ waitVsync   	; wait until high
 vsync1:
     LDB vsync
     ANI 0x40
@@ -113,7 +113,7 @@ readtext_counter: 8
 ReadText:
 	LDI 0
 	DEB readtext_counter		; decrease counter
-	BNE readtext_exit			; if not zero then quit
+	BNE readtext_exit		; if not zero then quit
 		MIB 8 readtext_counter	; this part reads character from text_data 
 		INW read_char+1
 	read_char:
@@ -122,7 +122,7 @@ ReadText:
 		CIB 0xff char_temp		; check if ens of string FF
 		BEQ RTskip
 		LDB char_temp
-		JAS _Char				; print character 
+		JAS _Char			; print character 
 	RTS
 RTskip:
 	MIW text_data read_char+1	;end of string, reset self modifying code at read_char
