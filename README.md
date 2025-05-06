@@ -12,4 +12,4 @@ Expansion board by hans61 https://github.com/hans61/Minimal-64x4-Expansion
 
 Original bitmap: "Skull Splitter" by The Sarge https://csdb.dk/release/?id=250768 
 
-![IMG_8656](https://github.com/user-attachments/assets/e258e301-9230-4ea7-9881-ecefea14d32b)
+![IMG_8670](https://github.com/user-attachments/assets/6667d459-0b52-4ef5-9437-33870bcc1245)
