@@ -34,11 +34,11 @@
 	LDI >img_len		PHS
 	JPS _MemMove			; 0xf006 _MemMove:	Moves N bytes from S.. to D.. taking overlap into account.
 					; push: D_lsb, D_msb, S_lsb, S_msb, N_lsb, N_msb
-	PLS PLS PLS PLS PLS PLS		;stack clean after _MemMove
+	PLS PLS PLS PLS PLS PLS		; stack clean after _MemMove
 
-	JPS VS_detect				;determine if VS signal can be read (i.e. expansion card present) 
+	JPS VS_detect			; determine if VS signal can be read (i.e. expansion card present) 
 
-	MIB 0x30 _XPos				;initialize crusor position for scroll, this then remains constant
+	MIB 0x30 _XPos			; initialize crusor position for scroll, this then remains constant
 	MIB 0x1d _YPos
 
 ;******************************************************
@@ -49,12 +49,12 @@ Main_loop:
 		JPS Scroll			; scroll a column one pixel up
 		LDB VS_counter 			; if VS_counter is zero then exp board is not present
 		CPI 0x00
-		BEQ Exp_not_present		;   depending if exp board is present, 
+		BEQ Exp_not_present		; depending if exp board is present, 
 	Exp_present:
-		JPS waitVsync			; 	wait for VSync
+		JPS waitVsync			; wait for VSync
 		JPA ML_cont
 	Exp_not_present:
-		JPS Wait_NOPs			; 	or wait some hardcoded time 
+		JPS Wait_NOPs			; or wait some hardcoded time 
 ;		JPA ML_cont	
 	ML_cont:
 		JAS ReadText			; read and print a letter at the bottom every 8th run
@@ -66,10 +66,10 @@ Main_loop:
 ;******************************************************
 scroll_counter: 0x00				; decreasing counter
 Scroll:
-	LDI 0xf0 STB scroll_counter		;initiate counter 240 lines
+	LDI 0xf0 STB scroll_counter		; initiate counter 240 lines
 	MIW 0x433c scr_loop+3
 	MIW 0x437c scr_loop+1
-scr_loop:							; self modifying copy loop 
+scr_loop:					; self modifying copy loop 
 		MBB 0x0000 0x0000
 		LDI 0x40 
 		ADW scr_loop+1
@@ -127,19 +127,19 @@ ReadText:
 		JAS _Char			; print character 
 	RTS
 RTskip:
-	MIW text_data read_char+1	;end of string, reset self modifying code at read_char
+	MIW text_data read_char+1		; end of string, reset self modifying code at read_char
 readtext_exit:
 	RTS
 char_temp: 0 
 text_data:
-"       Original graphics by The Sarge. Converted from Commodore64 and adapted for Minial64x4 by Hellboy73    /\/\/\/\/\/\/    ", 0xff, 0xff
+"       Original graphics by The Sarge. Converted from Commodore 64 and adapted for Minial64x4 by Hellboy73    /\/\/\/\/\/\/    ", 0xff, 0xff
 	
 ;******************************************************
 ;* detecting expansion board by checking for VSync 
 ;******************************************************
 VS_counter: 0xff
 VS_detect:
-	MIB 0x00 _XPos			;setting crusor position 
+	MIB 0x00 _XPos			; setting crusor position 
 	MIB 0x1d _YPos
 VS_loop:
 	DEB VS_counter
