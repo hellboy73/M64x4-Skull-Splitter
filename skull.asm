@@ -2,8 +2,10 @@
 ;* Simple program written for learning basics of Minimal64x4 assembly and graphics.
 ;* It can also be used to test VS signal reading from expansion board. 
 ;* If detected, scroll is animated exactly every frame, otherwise manual delay is added. 
+;* v1.0 by Mateusz Matysiak (Hellboy73) May 2025
+;* Minimal64x4 computer by Slu4 https://github.com/slu4coder/Minimal-64x4-Home-Computer
 ;* Expansion board by hans61 https://github.com/hans61/Minimal-64x4-Expansion
-;* Original bitmap is Skull Splitter by The Sarge https://csdb.dk/release/?id=250768 
+;* Original bitmap Skull Splitter by The Sarge https://csdb.dk/release/?id=250768 
 ;***************************************************************************************
 #mute                                       ; LABELS AND CONSTANTS
 #org 0x430c     viewport:                   ; start index of 400x240 pixel viewport (0x4000 + 12*64 + 11)
