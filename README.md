@@ -1,5 +1,5 @@
 # M64x4-Skull-Splitter
-I wrote this simple demo for learning basics of Minimal64x4 assembly and graphics.
+I wrote this simple demo for learning basics of Minimal 64x4 assembly and graphics.
 It can also be used to test VSync signal reading from expansion board. If detected, scroll is animated smoothly exactly every frame, otherwise manual delay is added. Operating mode is indicated at bottom left of the screen.
 
 v1.0 by Mateusz Matysiak (Hellboy73) May 2025
