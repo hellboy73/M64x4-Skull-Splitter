@@ -9,15 +9,15 @@
 ;***************************************************************************************
 #mute                                       ; LABELS AND CONSTANTS
 #org 0x430c     viewport:                   ; start index of 400x240 pixel viewport (0x4000 + 12*64 + 11)
-#org 0x3c00	img_len:
+#org 0x3c00     img_len:
 #org 0xf015     _WaitInput:
-#org 0xf006 	_MemMove:	
-#org 0xf03f 	_Char:			    ;Outputs a char at the cursor pos (non-advancing)
+#org 0xf006     _MemMove:   
+#org 0xf03f     _Char:                      ;Outputs a char at the cursor pos (non-advancing)
 #org 0xf012     _ReadInput:
 #org 0xf045     _Print:                     ; Prints a zero-terminated immediate string
 #org 0x00c0     _XPos:                      ; current VGA cursor col position (x: 0..WIDTH-1)
 #org 0x00c1     _YPos:                      ; current VGA cursor row position (y: 0..HEIGHT-1)
-#org 0xfee1 	vsync:   		    ; 4HC574 input Kempston, bit6 = vsync
+#org 0xfee1     vsync:                      ; 4HC574 input Kempston, bit6 = vsync
 #emit
 
 #org 0x8000 
@@ -26,71 +26,72 @@
 ;* testing presence of VSync signal at 0xfee1
 ;* setting cursor pos for scroll routine
 ;******************************************************
-	LDI <viewport-7		PHS
-	LDI >viewport-7		PHS
-	LDI <img_start    	PHS
-	LDI >img_start		PHS
-	LDI <img_len 		PHS
-	LDI >img_len		PHS
-	JPS _MemMove			; 0xf006 _MemMove:	Moves N bytes from S.. to D.. taking overlap into account.
-					; push: D_lsb, D_msb, S_lsb, S_msb, N_lsb, N_msb
-	PLS PLS PLS PLS PLS PLS		; stack clean after _MemMove
+    LDI <viewport-7     PHS
+    LDI >viewport-7     PHS
+    LDI <img_start      PHS
+    LDI >img_start      PHS
+    LDI <img_len        PHS
+    LDI >img_len        PHS
+    JPS _MemMove            ; 0xf006 _MemMove:  Moves N bytes from S.. to D.. taking overlap into account.
+                            ; push: D_lsb, D_msb, S_lsb, S_msb, N_lsb, N_msb
+    PLS PLS PLS PLS PLS PLS ; stack clean after _MemMove
+    
+    CLB vsync               ; clearing potential random RAM values 
+    JPS VS_detect           ; determine if VS signal can be read (i.e. expansion card present) 
 
-	JPS VS_detect			; determine if VS signal can be read (i.e. expansion card present) 
-
-	MIB 0x30 _XPos			; initialize crusor position for scroll, this then remains constant
-	MIB 0x1d _YPos
+    MIB 0x30 _XPos          ; initialize crusor position for scroll, this then remains constant
+    MIB 0x1d _YPos
 
 ;******************************************************
 ;* main loop doing vertical text shifting 
 ;* delay with VSync or fixed depending on Exp Board presence
 ;******************************************************
 Main_loop:
-		JPS Scroll			; scroll a column one pixel up
-		LDB VS_counter 			; if VS_counter is zero then exp board is not present
-		CPI 0x00
-		BEQ Exp_not_present		; depending if exp board is present, 
-	Exp_present:
-		JPS waitVsync			; wait for VSync
-		JPA ML_cont
-	Exp_not_present:
-		JPS Wait_NOPs			; or wait some hardcoded time 
-;		JPA ML_cont	
-	ML_cont:
-		JAS ReadText			; read and print a letter at the bottom every 8th run
-		JPA Main_loop	
-	RTS
+        JPS Scroll              ; scroll a column one pixel up
+        LDB VS_counter          ; if VS_counter is zero then exp board is not present
+        CPI 0x00
+        BEQ Exp_not_present     ; depending if exp board is present, 
+    Exp_present:
+        JPS waitVsync           ; wait for VSync
+        JPA ML_cont
+    Exp_not_present:
+        JPS Wait_NOPs           ; or wait some hardcoded time 
+;       JPA ML_cont 
+    ML_cont:
+        JAS ReadText            ; read and print a letter at the bottom every 8th run
+        JPA Main_loop   
+    RTS
 
 ;******************************************************
 ;* scrolling the whole column (8bits wide) up one pixel
 ;******************************************************
-scroll_counter: 0x00				; decreasing counter
+scroll_counter: 0x00                ; decreasing counter
 Scroll:
-	LDI 0xf0 STB scroll_counter		; initiate counter 240 lines
-	MIW 0x433c scr_loop+3
-	MIW 0x437c scr_loop+1
-scr_loop:					; self modifying copy loop 
-		MBB 0x0000 0x0000
-		LDI 0x40 
-		ADW scr_loop+1
-		LDI 0x40 
-		ADW scr_loop+3
-		DEB scroll_counter 
-		BNE scr_loop
-	RTS
-	
+    LDI 0xf0 STB scroll_counter     ; initiate counter 240 lines
+    MIW 0x433c scr_loop+3
+    MIW 0x437c scr_loop+1
+scr_loop:                   ; self modifying copy loop 
+        MBB 0x0000 0x0000
+        LDI 0x40 
+        ADW scr_loop+1
+        LDI 0x40 
+        ADW scr_loop+3
+        DEB scroll_counter 
+        BNE scr_loop
+    RTS
+    
 ;******************************************************
 ;* waiting to simulate VSync delay of one frame - roughly
 ;* should be replaced with vsync wait for smooth scrolling
 ;******************************************************
-wait_counter: 0x00				; decreasing counter
+wait_counter: 0x00              ; decreasing counter
 Wait_NOPs:
-	LDI 0xff STB wait_counter
+    LDI 0xff STB wait_counter
 wait_loop:
-		NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP
-		DEB wait_counter
-		BNE wait_loop
-	RTS
+        NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP
+        DEB wait_counter
+        BNE wait_loop
+    RTS
 
 ;******************************************************
 ;* waiting for VSync 
@@ -100,60 +101,60 @@ waitVsync:
     LDB vsync
     ANI 0x40
     CPI 0x00
-    BEQ waitVsync   	; wait until high
+    BEQ waitVsync       ; wait until high
 vsync1:
     LDB vsync
     ANI 0x40
     CPI 0x00
     BNE vsync1
     RTS
-		
+        
 ;***********************************************************
 ;* reading next letter every 8th call and plotting by _Char
 ;***********************************************************
 readtext_counter: 8 
 ReadText:
-	LDI 0
-	DEB readtext_counter		; decrease counter
-	BNE readtext_exit		; if not zero then quit
-		MIB 8 readtext_counter	; this part reads character from text_data 
-		INW read_char+1
-	read_char:
-		LDB text_data
-		STB char_temp
-		CIB 0xff char_temp		; check if ens of string FF
-		BEQ RTskip
-		LDB char_temp
-		JAS _Char			; print character 
-	RTS
+    LDI 0
+    DEB readtext_counter        ; decrease counter
+    BNE readtext_exit           ; if not zero then quit
+        MIB 8 readtext_counter  ; this part reads character from text_data 
+        INW read_char+1
+    read_char:
+        LDB text_data
+        STB char_temp
+        CIB 0xff char_temp      ; check if ens of string FF
+        BEQ RTskip
+        LDB char_temp
+        JAS _Char               ; print character 
+    RTS
 RTskip:
-	MIW text_data read_char+1		; end of string, reset self modifying code at read_char
+    MIW text_data read_char+1       ; end of string, reset self modifying code at read_char
 readtext_exit:
-	RTS
+    RTS
 char_temp: 0 
 text_data:
 "       Original graphics by The Sarge. Converted from Commodore 64 and adapted for Minial64x4 by Hellboy73    /\/\/\/\/\/\/    ", 0xff, 0xff
-	
+    
 ;******************************************************
 ;* detecting expansion board by checking for VSync 
 ;******************************************************
 VS_counter: 0xff
 VS_detect:
-	MIB 0x00 _XPos			; setting crusor position 
-	MIB 0x1d _YPos
+    MIB 0x00 _XPos          ; setting crusor position 
+    MIB 0x1d _YPos
 VS_loop:
-	DEB VS_counter
-	BEQ VS_exit
-	LDB vsync
-    ANI 0x40				; test for VS bit
+    DEB VS_counter
+    BEQ VS_exit
+    LDB vsync
+    ANI 0x40                ; test for VS bit
     CPI 0x00
-    BEQ VS_loop   			; if zero then loop again
-	JPS _Print "VSync", 0 
-	RTS
-VS_exit:
-	JPS _Print "NOPs", 0 
+    BEQ VS_loop             ; if zero then loop again
+    JPS _Print "VSync", 0 
     RTS
-		
+VS_exit:
+    JPS _Print "NOPs", 0 
+    RTS
+        
 ;******************************************************
 ;* bitmap data of Skull Splitter by The Sarge
 ;* coverted to 1bit and cropped accordingly
